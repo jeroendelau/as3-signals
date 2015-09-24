@@ -1,0 +1,6 @@
+{
+    "name": "jeroendelau/as3-signals",
+    "extra": {
+		"as-source-path":"src"
+    }
+}
