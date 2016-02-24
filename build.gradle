@@ -1,0 +1,118 @@
+// =================================================================================================
+//
+//	AS3 Signals
+//
+// =================================================================================================
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://raw.githubusercontent.com/vpmedia/mvnrepository/master'}
+    }
+    dependencies {
+        classpath group: 'org.gradlefx', name: 'gradlefx', version: '1.3.2'
+    }
+}
+
+apply plugin: 'gradlefx'
+apply plugin: 'flashbuilder'
+
+
+// --------------------------------------------
+// OS type needed for AdobeAIR resolution
+// --------------------------------------------
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+def os = ""
+if(Os.isFamily(Os.FAMILY_WINDOWS)){ os = "win"  }
+if(Os.isFamily(Os.FAMILY_UNIX))   {	os = "unix" }
+if(Os.isFamily(Os.FAMILY_MAC))    { os = "mac"  }
+
+
+// --------------------------------------------
+// Repositories and dependencies for build
+// --------------------------------------------
+
+repositories {
+		ivy {
+        	url "s3://maven.crazyroosters.com/maven"
+        	credentials(AwsCredentials) {
+            	accessKey 'AKIAIDUYTCXG4CCQSPOA'
+            	secretKey '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'
+        	}
+    	}
+        ivy { 
+        	name 'Apache Flex'
+        	artifactPattern 'http://archive.apache.org/dist/flex/[revision]/binaries/[module]-[revision]-bin.[ext]'
+        }
+        ivy {
+            name 'Adobe Air SDK'
+            artifactPattern 'http://download.macromedia.com/air/mac/download/[revision]/[module].[ext]'
+        }
+         ivy 
+        {
+            name 'Apache FlexUnit'
+            artifactPattern 'http://s3-us-west-1.amazonaws.com/crazyroosters.maven-public/flexunit/[module]-[revision].[ext]'
+        }
+}
+
+dependencies {
+        flexSDK group: 'org.apache', name: 'apache-flex-sdk', version: '4.15.0', ext: Os.isFamily(Os.FAMILY_WINDOWS) ? 'zip' : 'tar.gz'
+        airSDK  group: 'com.adobe', name: 'AdobeAIRSDK',version: '20.0', ext: Os.isFamily(Os.FAMILY_WINDOWS) ? 'zip' : 'tbz2'
+         
+        test group: 'org.flexunit', name: 'flexunit', version: '4.2.0-20140410-as3_4.12.0', ext: 'swc'
+    	test group: 'org.flexunit', name: 'flexUnitTasks', version: '4.2.0-20140410', ext: 'jar'
+   		test group: 'org.flexunit', name: 'flexunit-cilistener', version: '4.2.0-20140410-4.12.0', ext: 'swc'
+    	test group: 'org.flexunit', name: 'flexunit-uilistener', version: '4.2.0-20140410-4.12.0', ext: 'swc'
+    	test group: 'org.flexunit', name: 'hamcrest-as3-only', version: '1.1.3', ext: 'swc'
+}
+
+// Aggressively renew
+configurations.all {
+  resolutionStrategy {
+    cacheChangingModulesFor 0, 'seconds'
+  }
+}
+
+sdkAutoInstall {
+	showPrompts	= false
+}
+
+
+// --------------------------------------------
+// Build Variables
+// --------------------------------------------
+
+version= '0.8'
+group = 'com.crazyroosters'
+type = 'swc'
+
+srcDirs = ['src']
+
+
+additionalCompilerOptions = [
+  '-target-player=20.0',
+  '-strict=false'
+]
+
+
+// --------------------------------------------
+// Tasks
+// --------------------------------------------
+
+defaultTasks 'clean', 'compileFlex', 'uploadArchives'
+
+uploadArchives {
+    repositories {
+       ivy {
+        url "s3://maven.crazyroosters.com/maven"
+        	credentials(AwsCredentials) {
+            	accessKey 'AKIAIDUYTCXG4CCQSPOA'
+            	secretKey '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'
+        	}
+    	}
+    }
+}
+
+
